@@ -172,10 +172,11 @@ class UserMiddleware
             $request->active_token = $active;
 
             return $next($request);
+            
 
         } catch (\Throwable $e) {
             Log::error('JwtMiddleware error: ' . $e->getMessage(), ['request' => $request->all()]);
-            
+
             return ApiResponse::error(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 'An error occurred while processing the request.',
