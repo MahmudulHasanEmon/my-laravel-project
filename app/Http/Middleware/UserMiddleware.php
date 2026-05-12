@@ -2,14 +2,14 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
+use App\Helpers\ApiResponse;
+use App\Helpers\StatusCode;
+use App\Helpers\User\JwtHelper;
 use App\Models\Token;
 use App\Models\User\User;
-use App\Helpers\StatusCode;
-use App\Helpers\ApiResponse;
-use App\Helpers\User\JwtHelper;
+use Closure;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-
 
 class UserMiddleware
 {
@@ -100,7 +100,7 @@ class UserMiddleware
             if ($securityPreference->locked_at) {
 
                 return ApiResponse::error(
-                    StatusCode::USER_BLOCKED,
+                    StatusCode::UNPROCESSABLE_ENTITY,
                     'Account is already locked',
                     [
                         'locked_reason' => $securityPreference->locked_reason,
@@ -108,10 +108,9 @@ class UserMiddleware
                     ]
                 );
             }
-            
+
             // Optional: Fingerprint check (deviceId + User-Agent)
             $fingerprint = hash('sha256', $deviceId . '|' . $request->header('User-Agent'));
-
 
             if ($active->fingerprint && $active->fingerprint !== $fingerprint) {
                 return ApiResponse::error(
@@ -120,6 +119,49 @@ class UserMiddleware
                 );
             }
 
+            // Get PIN from header or request body
+            $pin = $request->pin ?? $request->header('X-User-Pin');
+
+            // PIN missing
+            if (empty($pin)) {
+                return ApiResponse::error(
+                    StatusCode::UNAUTHORIZED,
+                    'PIN required'
+                );
+            }
+
+
+            // Validate PIN
+            if (!Hash::check($pin, $user->pin)) {
+
+
+                $securityPreference->pin_attempts += 1;
+
+                if ($securityPreference->pin_attempts >= 5) {
+                    $securityPreference->locked_at = now();
+                    $securityPreference->locked_reason = 'Too many failed PIN attempts';
+                }
+
+                $securityPreference->save();
+
+                return ApiResponse::error(
+                    StatusCode::UNAUTHORIZED,
+                    'Invalid PIN',
+                    [
+                        'remaining_attempts' => max(0, 5 - $securityPreference->pin_attempts),
+                    ]
+                );
+
+
+                return ApiResponse::error(
+                    StatusCode::INVALID_PIN,
+                    'Invalid PIN with remaining attempts '
+                );
+
+            }
+
+            // Reset failed attempts + Update last activity
+            $securityPreference->pin_attempts = 0;
             $securityPreference->last_activity_at = now();
             $securityPreference->save();
 
@@ -133,7 +175,7 @@ class UserMiddleware
 
         } catch (\Throwable $e) {
             Log::error('JwtMiddleware error: ' . $e->getMessage(), ['request' => $request->all()]);
-
+            
             return ApiResponse::error(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 'An error occurred while processing the request.',

@@ -13,6 +13,20 @@ class TransactionController extends Controller
     public function create(Request $request)
     {
 
+
+
+    
+
+        return ApiResponse::success(
+            StatusCode::OK,
+            'Transaction created successfully',
+            $request->all()
+        );
+
+
+
+
+
     }
 
     // get all transactions
