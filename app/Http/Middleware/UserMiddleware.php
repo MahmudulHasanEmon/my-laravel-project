@@ -145,17 +145,11 @@ class UserMiddleware
                 $securityPreference->save();
 
                 return ApiResponse::error(
-                    StatusCode::UNAUTHORIZED,
-                    'Invalid PIN',
+                    StatusCode::INVALID_PIN,
+                    'Invalid PIN ' . max(0, 5 - $securityPreference->pin_attempts),
                     [
                         'remaining_attempts' => max(0, 5 - $securityPreference->pin_attempts),
                     ]
-                );
-
-
-                return ApiResponse::error(
-                    StatusCode::INVALID_PIN,
-                    'Invalid PIN with remaining attempts '
                 );
 
             }
@@ -172,7 +166,7 @@ class UserMiddleware
             $request->active_token = $active;
 
             return $next($request);
-            
+
 
         } catch (\Throwable $e) {
             Log::error('JwtMiddleware error: ' . $e->getMessage(), ['request' => $request->all()]);

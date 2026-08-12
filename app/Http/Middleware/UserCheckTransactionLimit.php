@@ -209,16 +209,13 @@ class UserCheckTransactionLimit
             )
             ->exists();
 
-        if ($exists) {
+        // if ($exists) {
 
-            return ApiResponse::error(
-                StatusCode::TOO_MANY_REQUESTS,
-                'Same transaction blocked for 10 minutes'
-            );
-        }
-
-
-
+        //     return ApiResponse::error(
+        //         StatusCode::TOO_MANY_REQUESTS,
+        //         'Same transaction blocked for 10 minutes'
+        //     );
+        // }
 
         // =====================================
         // Attach Limit Config To Request

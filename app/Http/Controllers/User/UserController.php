@@ -34,7 +34,8 @@ class UserController extends Controller
                 'device_id' => 'required|string',
                 'pin' => 'required|digits:5',
                 'name' => 'required|string|max:100',
-                'profile_img' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+                'profile_img' => 'required|string', // Expecting base64 string for profile image
+                //'profile_img' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             ]);
         } catch (ValidationException $e) {
             return ApiResponse::error(
@@ -62,9 +63,40 @@ class UserController extends Controller
 
             DB::beginTransaction();
 
-            // ✅ 2. Handle Profile Image Upload
-            $profilePath = $request->file('profile_img')->store('users', 'public');
-            $profileUrl = asset('storage/' . $profilePath);
+            // ✅ 2. Handle Profile Base64 Image Upload
+            if ($request->has('profile_img') && !empty($request->input('profile_img'))) {
+                $base64Image = $request->input('profile_img');
+
+                // ১. স্ট্রিং-এ "data:image/png;base64," জাতীয় Prefix থাকলে তা মুছে ফেলা
+                if (preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                    $base64Image = substr($base64Image, strpos($base64Image, ',') + 1);
+                    $extension = strtolower($type[1]); // png, jpg, jpeg ইত্যাদি এক্সটেনশন পাবে
+                } else {
+                    $extension = 'jpg'; // ডিফল্ট এক্সটেনশন
+                }
+
+                // ২. Base64 ডিকোড করা
+                $imageBytes = base64_decode($base64Image);
+
+                if ($imageBytes !== false) {
+                    // ৩. ইউনিক ফাইলের নাম তৈরি (যেমন: users/user_66bd32a1f2.jpg)
+                    $fileName = 'users/' . uniqid('user_') . '.' . $extension;
+
+                    // ৪. Laravel Storage ব্যবহার করে public ডিস্কে ফাইল সেভ করা
+                    \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $imageBytes);
+
+                    // ৫. পাব্লিক URL জেনারেট করা
+                    $profileUrl = $fileName;
+
+                } else {
+                    // ডিকোড করতে সমস্যা হলে ডিফল্ট বা null সেট করতে পারেন
+                    $profileUrl = null;
+                }
+            } else {
+                $profileUrl = "HFDH"; // যদি কোনো ইমেজ না থাকে, তাহলে null বা ডিফল্ট URL ব্যবহার করুন
+            }
+
+
 
 
 
@@ -153,6 +185,24 @@ class UserController extends Controller
                     'user_data' => [
                         'user' => $user,
                         'role' => $user->role,
+                        'lastFiveTransactions' => $user->lastFiveTransactions,
+                        'transactionLimits' => $user->transactionLimits,
+                    ],
+                ]
+            );
+
+
+            // 🔹 9. Success response
+            return ApiResponse::success(
+                StatusCode::OK,
+                'PIN login successful',
+                [
+                    'token' => $jwt['token'],
+                    'expires_at' => Carbon::createFromTimestamp($jwt['exp'])->toDateTimeString(),
+                    'user_data' => [
+                        'user' => $user,
+                        'role' => $user->role,
+                        'lastFiveTransactions' => $user->lastFiveTransactions,
                         'transactionLimits' => $user->transactionLimits,
                     ],
                 ]
@@ -236,9 +286,14 @@ class UserController extends Controller
 
                 $securityPreference->save();
 
-                return ApiResponse::error(StatusCode::INVALID_PIN, 'Invalid PIN', [
-                    'remaining_attempts' => max(0, 5 - $securityPreference->pin_attempts)
-                ]);
+                $remaining = max(0, 5 - $securityPreference->pin_attempts);
+                $attemptsText = $remaining === 1 ? '1 attempt' : "{$remaining} attempts";
+
+                return ApiResponse::error(
+                    StatusCode::INVALID_PIN,
+                    "Incorrect PIN. You have {$attemptsText} remaining.",
+                    ['remaining_attempts' => $remaining]
+                );
             }
 
             // 🔹 6. Reset attempts if PIN correct
@@ -299,7 +354,7 @@ class UserController extends Controller
         } catch (ValidationException $e) {
             return ApiResponse::error(
                 StatusCode::UNPROCESSABLE_ENTITY,
-                'Validation failed',
+                'Validation failed ' . implode(', ', \Illuminate\Support\Arr::flatten($e->errors())),
                 $e->errors(),
             );
         } catch (\Throwable $e) {
@@ -366,9 +421,16 @@ class UserController extends Controller
 
                 $securityPreference->save();
 
-                return ApiResponse::error(StatusCode::INVALID_PIN, 'Invalid PIN with remaining attempts ' . max(0, 5 - $securityPreference->pin_attempts), [
-                    'remaining_attempts' => max(0, 5 - $securityPreference->pin_attempts)
-                ]);
+                $remaining = max(0, 5 - $securityPreference->pin_attempts);
+                $attemptsText = $remaining === 1 ? '1 attempt' : "{$remaining} attempts";
+
+                return ApiResponse::error(
+                    StatusCode::INVALID_PIN,
+                    "Incorrect PIN. You have {$attemptsText} remaining.",
+                    ['remaining_attempts' => $remaining]
+                );
+
+
             }
 
 
@@ -517,7 +579,10 @@ class UserController extends Controller
 
     public function profile(Request $request)
     {
-        return $request;
+        return ApiResponse::success(
+            StatusCode::OK,
+            StatusCode::message(StatusCode::OK)
+        );
     }
 
     public function test(Request $request)

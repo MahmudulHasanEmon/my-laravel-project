@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(100)->by($key)
                 ->response(fn($req, $headers) => $this->rateLimitResponse('OTP requests', $headers, 120));
         });
-        
+
         // Verify OTP → প্রতি 1 মিনিটে 3 বার
         RateLimiter::for('verify-otp', function (Request $request) {
             $key = $request->input('phone') ?: $request->ip();

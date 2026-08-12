@@ -199,7 +199,7 @@ class OtpController extends Controller
             );
         }
     }
-    
+
     /**
      * Send OTP to the user's phone.
      */
@@ -365,7 +365,7 @@ class OtpController extends Controller
 
             return ApiResponse::error(
                 StatusCode::UNPROCESSABLE_ENTITY,
-                'Validation error',
+                'Validation error: ' . implode(', ', \Illuminate\Support\Arr::flatten($e->errors())),
                 $e->errors(),
             );
 

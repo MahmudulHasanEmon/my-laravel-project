@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserRole extends Model
 {
-    protected $fillable = ['name', 'display_name', 'description', 'is_active'];
+    protected $fillable = ['name', 'display_name', 'description', 'is_active', 'is_hidden', 'priority'];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_hidden' => 'boolean',
+        'priority' => 'integer'
     ];
 
     public function permissions()

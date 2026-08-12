@@ -31,12 +31,12 @@ class ApiResponse
       //   'timestamp' => now()->toISOString(),
       // ], $meta),
     ];
-
+    
     if (!is_null($data)) {
       $response['data'] = $data;
     }
 
-    return response()->json($response, $statusCode);
+    return response()->json($response);
   }
 
   /**
@@ -68,6 +68,6 @@ class ApiResponse
       $response['errors'] = $errors;
     }
 
-    return response()->json($response, $statusCode);
+    return response()->json($response);
   }
 }

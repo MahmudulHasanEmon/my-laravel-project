@@ -153,8 +153,6 @@ class MobileRechargeController extends Controller
             'Recharge request submitted successfully',
             [
                 'transaction' => $transaction,
-                'calculation' => $calculation,
-                'available_balance' => round($user->available_balance, 2),
             ]
         );
 
