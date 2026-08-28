@@ -86,7 +86,7 @@ class UserController extends Controller
                     \Illuminate\Support\Facades\Storage::disk('public')->put($fileName, $imageBytes);
 
                     // ৫. পাব্লিক URL জেনারেট করা
-                    $profileUrl = $fileName;
+                    $profileUrl = $fileName; // অথবা \Illuminate\Support\Facades\Storage::url($fileName) ব্যবহার করতে পারেন যদি public URL প্রয়োজন হয়
 
                 } else {
                     // ডিকোড করতে সমস্যা হলে ডিফল্ট বা null সেট করতে পারেন

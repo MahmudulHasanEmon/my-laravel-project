@@ -19,8 +19,15 @@ class PaymentFactory extends Factory
     {
         return [
             'item_type' => $this->faker->randomElement(['personal', 'payment', 'agent']),
-            'gateway_type' => $this->faker->randomElement(['manual', 'api']),
+            'request' => $this->faker->randomElement(['manual', 'api']),
             'method' => $this->faker->randomElement(['bkash', 'nagad', 'rocket']),
+            'gateway_type' => $this->faker->randomElement([
+                'bank',
+                'card',
+                'mfs',
+                'qrcode',
+                'other'
+            ]),
 
             'phone' => $this->faker->phoneNumber(),
             'account_number' => $this->faker->bankAccountNumber(),

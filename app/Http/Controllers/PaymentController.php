@@ -6,7 +6,6 @@ use App\Helpers\ApiResponse;
 use App\Helpers\StatusCode;
 use App\Models\User\Payment;
 use Illuminate\Http\Request;
-use InvalidArgumentException;
 
 class PaymentController extends Controller
 {
@@ -18,13 +17,12 @@ class PaymentController extends Controller
 
         $paymentInfo = Payment::where('is_active', true)->get();
 
-
         return ApiResponse::success(
             StatusCode::OK,
             'Payment information retrieved successfully.',
             $paymentInfo
         );
-        
+
     }
 
     public function loadBkashPayment(Request $request)

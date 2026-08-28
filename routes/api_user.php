@@ -20,7 +20,7 @@ Route::prefix('user')->group(function () {
 
   Route::post('/refresh-token', [UserController::class, 'refreshToken'])
     ->middleware(middleware: 'throttle:refresh-token');
-    
+
   Route::post('/register', [UserController::class, 'registerWithPin'])
     ->middleware('throttle:register');
 
@@ -47,7 +47,6 @@ Route::prefix('user')->group(function () {
 
   Route::post('/test', [TransactionController::class, 'lastFive']);
 
-
 });
 
 Route::prefix('user')->middleware(['auth.user'])->group(function () {
@@ -58,10 +57,12 @@ Route::prefix('user')->middleware(['auth.user'])->group(function () {
 
   // Additional authenticated user routes can be added here
   Route::get('/recharge-info', [MobileRechargeController::class, 'getRechargeInfo']);
-  Route::get('/payment-info', [PaymentController::class, 'getPaymentInfo']);
-  Route::post('/bkash-payment', [PaymentController::class, 'createPayment']);
+  Route::get('/payment-info', [PaymentController::class, 'getPaymentInfo'])
+    ->middleware('user.permission:add_money');
 
-  
+  Route::post('/bkash-payment', [PaymentController::class, 'createPayment'])
+    ->middleware('user.permission:create_payment');
+
   // Transaction routes
   Route::get('/transactions', [TransactionController::class, 'index']);
   Route::get('/transactions/last-five', [TransactionController::class, 'lastFive']);

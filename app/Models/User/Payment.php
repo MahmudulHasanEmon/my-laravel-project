@@ -16,9 +16,10 @@ class Payment extends Model
     public $timestamps = true;
 
     protected $fillable = [
+        'request',
+        'method',
         'item_type',
         'gateway_type',
-        'method',
         'phone',
         'account_number',
         'holder_name',
