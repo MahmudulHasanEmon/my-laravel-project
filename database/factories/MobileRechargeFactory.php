@@ -29,6 +29,7 @@ class MobileRechargeFactory extends Factory
                 'ussd',
                 'manual'
             ]),
+
             
             'block_amount' => [
                 'today' => $this->faker->numberBetween(0, 500),
@@ -52,10 +53,10 @@ class MobileRechargeFactory extends Factory
             'is_pending' => $this->faker->boolean(20),
             'is_active' => $this->faker->boolean(90),
             'is_offer_active' => $this->faker->boolean(80),
-
+            
             'minimum_amount' => $this->faker->randomFloat(2, 10, 50),
             'maximum_amount' => $this->faker->randomFloat(2, 100, 2000),
-
+            'logo_url' => 'https://images.seeklogo.com/logo-png/24/1/grameenphone-logo-png_seeklogo-249793.png',
             'created_by' => Admin::inRandomOrder()->value('admin_id') ?? 1,
             'updated_by' => null,
         ];

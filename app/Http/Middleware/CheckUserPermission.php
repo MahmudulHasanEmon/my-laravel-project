@@ -19,16 +19,19 @@ class CheckUserPermission
         string $permission
     ): Response {
 
-        // TEST: Middleware actually running? 
-        \Log::info('CheckUserPermission Middleware Called', ['permission' => $permission, 'user' => $request->user(),]);
-        $user = $request->user;
+        // FIX: Call the method user() with parentheses
+        $user = $request->user();
 
+        // 1. Unauthenticated User Check
         if (!$user) {
-            return ApiResponse::error(StatusCode::UNAUTHORIZED, StatusCode::message(StatusCode::UNAUTHORIZED));
+            return ApiResponse::error(
+                StatusCode::UNAUTHORIZED,
+                StatusCode::message(StatusCode::UNAUTHORIZED)
+            );
         }
 
-        // User is not authenticated or does not have permission
-        if (!$user || !$user->hasPermission($permission)) {
+        // 2. Permission Check (Recommended: Use FORBIDDEN / 403 instead of METHOD_NOT_ALLOWED / 405)
+        if (!$user->hasPermission($permission)) {
             return ApiResponse::error(
                 StatusCode::METHOD_NOT_ALLOWED,
                 StatusCode::message(StatusCode::METHOD_NOT_ALLOWED)

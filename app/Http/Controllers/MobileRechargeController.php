@@ -161,17 +161,16 @@ class MobileRechargeController extends Controller
 
     public function getRechargeInfo(Request $request)
     {
-        // 1️⃣ Manual Validator for custom error handling
+        // 1️⃣ Manual Validator
         $validator = Validator::make($request->all(), [
             'operator' => 'required|string|max:15',
         ]);
 
         if ($validator->fails()) {
-
             \Log::info('Validation failed in getRechargeInfo:', $validator->errors()->toArray());
 
             return ApiResponse::error(
-                StatusCode::UNPROCESSABLE_ENTITY, // HTTP Unprocessable Entity
+                StatusCode::UNPROCESSABLE_ENTITY,
                 'Validation failed',
                 $validator->errors()->toArray()
             );
@@ -179,43 +178,69 @@ class MobileRechargeController extends Controller
 
         $operator = $request->operator;
 
-        // cache key (unique per operator)
-        $cacheKey = 'recharge_plan_' . $operator;
+        // 2️⃣ Cache recharge plan for 24 hours
+        $rechargePlan = MobileRecharge::where('operator', $operator)->first();
 
-        // cache for 60 minutes
-        $rechargePlan = Cache::remember($cacheKey, now()->addHours(24), function () use ($operator) {
-            return MobileRecharge::where('operator', $operator)->first();
-        });
-
-        // 3️⃣ Check if offer is active
-        $isOfferAvailable = $rechargePlan->is_offer_active;
-
-        $offers = [];
-
-        if ($isOfferAvailable) {
-
-            // unique cache key
-            $cacheKey = 'sim_offers_' . $operator;
-
-            $offers = Cache::remember($cacheKey, now()->addHours(24), function () use ($operator) {
-                return SimOffer::where('operator', $operator)
-                    ->where('status', 'active')
-                    ->where('item_type', 'regular')
-                    ->get();
-            });
+        // ⚠️ Check if $rechargePlan exists to avoid "Property on null" error
+        if (!$rechargePlan) {
+            return ApiResponse::error(
+                StatusCode::NOT_FOUND,
+                'Operator plan not found'
+            );
         }
 
-        $available_balance = $request->user->available_balance;
+        // 3️⃣ Get offers if offer is active
+        $offers = [];
+        if ($rechargePlan->is_offer_active) {
+            $offers = SimOffer::where('operator', $operator)
+                ->where('status', 'active')
+                ->where('item_type', 'regular')
+                ->get();
+        }
+
+        // 4️⃣ User Balance (Optional chaining or auth safety check)
+        $availableBalance = $request->user()?->available_balance ?? $request->user->available_balance;
+
+        // 5️⃣ Fetch unique operators directly from DB (Optimized query)
+        $operators = MobileRecharge::query()
+            ->select('operator', 'logo_url')
+            ->orderBy('operator', 'asc')
+            ->get()
+            ->unique('operator')
+            ->values();
+
+
+
+        // 6️⃣ Return success response
+        return ApiResponse::success(
+            StatusCode::OK,
+            'Recharge information retrieved successfully.',
+            [
+                'available_balance' => $availableBalance,
+                'recharge_plan' => $rechargePlan,
+                'offers' => $offers,
+                'operators' => $operators,
+            ]
+        );
+    }
+
+    public function getRechargeOperators()
+    {
+
+        $rechargePlans = MobileRecharge::query()
+            ->select('operator', 'logo_url')
+            ->orderBy('operator', 'asc')
+            ->get()
+            ->unique('operator')
+            ->values(); // Index সঠিক রাখার জন্য values() ব্যবহার করা ভালো
+
 
         // 4️⃣ Return success response
         return ApiResponse::success(
             StatusCode::OK,
             'Recharge information retrieved successfully.',
             [
-                'available_balance' => $available_balance,
-                'recharge_plan' => $rechargePlan,
-                'offers' => $offers,
-
+                'recharge_plan' => $rechargePlans,
             ]
         );
     }

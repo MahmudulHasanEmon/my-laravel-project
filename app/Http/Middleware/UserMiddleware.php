@@ -159,6 +159,8 @@ class UserMiddleware
             $securityPreference->last_activity_at = now();
             $securityPreference->save();
 
+            $request->setUserResolver(fn() => $user);
+
             // Assign user & token info to request
             $request->user = $user;
             $request->securityPreference = $securityPreference;

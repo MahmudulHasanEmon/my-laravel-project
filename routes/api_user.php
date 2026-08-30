@@ -3,6 +3,7 @@
 use App\Http\Controllers\MobileRechargeController;
 use App\Http\Controllers\OtpController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\SimOfferController;
 use App\Http\Controllers\User\TransactionController;
 use App\Http\Controllers\User\UserController;
 use Illuminate\Support\Facades\Route;
@@ -57,8 +58,13 @@ Route::prefix('user')->middleware(['auth.user'])->group(function () {
 
   // Additional authenticated user routes can be added here
   Route::get('/recharge-info', [MobileRechargeController::class, 'getRechargeInfo']);
+  Route::get('/recharge-operators', [MobileRechargeController::class, 'getRechargeOperators']);
   Route::get('/payment-info', [PaymentController::class, 'getPaymentInfo'])
     ->middleware('user.permission:add_money');
+
+  // get and post
+  Route::match(['get', 'post'], '/sim-offers', [SimOfferController::class, 'allOffers'])
+    ->middleware('user.permission:sim_offer');
 
   Route::post('/bkash-payment', [PaymentController::class, 'createPayment'])
     ->middleware('user.permission:create_payment');
@@ -69,5 +75,18 @@ Route::prefix('user')->middleware(['auth.user'])->group(function () {
 
   Route::post('/recharge', [MobileRechargeController::class, 'recharge'])
     ->middleware('user.trx.limit:mobile_recharge');
+
+});
+
+
+
+
+// sim offer routes
+Route::prefix('user')->middleware(['auth.user'])->group(function () {
+
+  // get
+  Route::get('/sim-offers', [SimOfferController::class, 'allOffers'])
+    ->middleware('user.permission:sim_offer');
+
 
 });

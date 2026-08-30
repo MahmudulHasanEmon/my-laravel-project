@@ -1,4 +1,3 @@
-```php
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -6,6 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+    
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->id();
 
             // Payment request information
+            $table->string('request');
             $table->string('method');
             $table->enum('gateway_type', [
                 'bank',
@@ -21,8 +22,8 @@ return new class extends Migration {
                 'qrcode',
                 'other'
             ])->default('other');
+            
             $table->string('item_type');
-            $table->string('request');
 
             // Account information
             $table->string('phone')->nullable();

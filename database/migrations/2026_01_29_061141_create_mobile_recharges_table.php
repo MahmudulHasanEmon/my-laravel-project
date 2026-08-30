@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,6 +15,9 @@ return new class extends Migration
             $table->string('type');
             $table->string('operator');
             $table->string('request_type');
+            
+            $table->unique(['type', 'operator', 'request_type'], 'unique_mobile_recharge');
+
             $table->json('block_amount');
             $table->json('pending_amount');
             $table->string('ussd');
@@ -25,6 +27,7 @@ return new class extends Migration
 
             $table->decimal('minimum_amount', 15, 2);
             $table->decimal('maximum_amount', 15, 2);
+            $table->string('logo_url')->nullable();
             $table->boolean('is_offer_active')->default(true);
 
             $table->bigInteger('created_by');

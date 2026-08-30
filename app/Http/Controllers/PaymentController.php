@@ -60,7 +60,7 @@ class PaymentController extends Controller
         try {
             $accessToken = $bkash->getAccessToken();
             $payment = $bkash->createPayment($amount, $userId, $accessToken);
-
+            
             $url = $payment['bkashURL'] ?? null;
 
             if (!$url) {

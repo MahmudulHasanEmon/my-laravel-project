@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 use Illuminate\Database\Seeder;
 
 class SimOfferSeeder extends Seeder
@@ -13,7 +13,42 @@ class SimOfferSeeder extends Seeder
     public function run(): void
     {
         \App\Models\SimOffer::factory()->count(500)->create();
-        \App\Models\MobileRecharge::factory()->count(10)->create();
+
+        $types = [
+            'prepaid',
+            'postpaid',
+        ];
+
+        $operators = [
+            'Grameenphone',
+            'Robi',
+            'Airtel',
+            'Banglalink',
+            'Teletalk',
+            'Skitto',
+            'Citycell',
+        ];
+
+        $requestTypes = [
+            'api',
+            'ussd',
+            'manual',
+        ];
+
+        foreach ($types as $type) {
+            foreach ($operators as $operator) {
+                foreach ($requestTypes as $requestType) {
+
+                    \App\Models\MobileRecharge::factory()
+                        ->state([
+                            'type' => $type,
+                            'operator' => $operator,
+                            'request_type' => $requestType,
+                        ])
+                        ->create();
+                }
+            }
+        }
 
     }
 }

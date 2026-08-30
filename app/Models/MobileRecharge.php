@@ -24,6 +24,7 @@ class MobileRecharge extends Model
         'is_active',
         'minimum_amount',
         'maximum_amount',
+        'logo_url',
         'is_offer_active',
         'created_by',
         'updated_by',

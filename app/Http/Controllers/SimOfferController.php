@@ -2,15 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ApiResponse;
+use App\Helpers\StatusCode;
+use App\Http\Controllers\Controller;
+use App\Models\SimOffer;
 use Illuminate\Http\Request;
 
 class SimOfferController extends Controller
 {
-    // Controller methods will go here
-
-    public function index(Request $request)
+    public function allOffers(Request $request)
     {
-        // Logic to list SIM offers
-        
+        // Fetch active SIM offers ordered by price
+        $offers = SimOffer::where('status', 'active')
+            //->orderBy('price', 'asc')
+            ->get();
+
+        return ApiResponse::success(
+            StatusCode::OK,
+            'Active SIM offers retrieved successfully.',
+            $offers->toArray() // Convert Eloquent collection to array
+        );
     }
 }
