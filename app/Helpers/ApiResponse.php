@@ -15,7 +15,7 @@ class ApiResponse
    * @param  array       $meta
    * @return JsonResponse
    */
-  
+
   public static function success(
     int $statusCode = 200,
     string $message = 'Success',
@@ -31,7 +31,7 @@ class ApiResponse
       //   'timestamp' => now()->toISOString(),
       // ], $meta),
     ];
-    
+
     if (!is_null($data)) {
       $response['data'] = $data;
     }

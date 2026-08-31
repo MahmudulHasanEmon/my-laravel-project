@@ -7,9 +7,8 @@ use App\Helpers\StatusCode;
 use App\Models\MobileRecharge;
 use App\Models\SimOffer;
 use App\Models\User\Transaction;
-use App\Models\User\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\User\TransactionCalculator;
 
@@ -161,67 +160,69 @@ class MobileRechargeController extends Controller
 
     public function getRechargeInfo(Request $request)
     {
-        // 1️⃣ Manual Validator
-        $validator = Validator::make($request->all(), [
-            'operator' => 'required|string|max:15',
-        ]);
+        try {
+            // 1️⃣ Validate input
+            $validated = $request->validate([
+                'operator' => 'required|string|max:15',
+            ]);
 
-        if ($validator->fails()) {
-            \Log::info('Validation failed in getRechargeInfo:', $validator->errors()->toArray());
+            $operator = $validated['operator'];
 
+            // 2️⃣ Fetch recharge plan for specific operator
+            $rechargePlan = MobileRecharge::where('operator', $operator)->first();
+
+            if (!$rechargePlan) {
+                return ApiResponse::error(
+                    StatusCode::NOT_FOUND,
+                    'Operator plan not found'
+                );
+            }
+
+            // 3️⃣ Fetch active offers if enabled
+            $offers = [];
+            if ($rechargePlan->is_offer_active) {
+                $offers = SimOffer::where('operator', $operator)
+                    ->where('status', 'active')
+                    ->where('item_type', 'regular')
+                    ->get();
+            }
+
+            // 4️⃣ Safely extract user balance
+            $availableBalance = $request->user()?->available_balance ?? 0.00;
+
+            // 5️⃣ Fetch unique operators directly from DB query
+            $operators = MobileRecharge::query()
+                ->select('operator', 'logo_url')
+                ->orderBy('operator', 'asc')
+                ->get()
+                ->unique('operator')
+                ->values();
+
+            // 6️⃣ Return structured response
+            return ApiResponse::success(
+                StatusCode::OK,
+                'Recharge information retrieved successfully.',
+                [
+                    'available_balance' => $availableBalance,
+                    'recharge_plan' => $rechargePlan,
+                    'offers' => $offers,
+                    'operators' => $operators,
+                ]
+            );
+
+        } catch (ValidationException $e) {
             return ApiResponse::error(
                 StatusCode::UNPROCESSABLE_ENTITY,
-                'Validation failed',
-                $validator->errors()->toArray()
+                'Validation error: ' . implode(', ', \Illuminate\Support\Arr::flatten($e->errors())),
+                $e->errors()
             );
-        }
-
-        $operator = $request->operator;
-
-        // 2️⃣ Cache recharge plan for 24 hours
-        $rechargePlan = MobileRecharge::where('operator', $operator)->first();
-
-        // ⚠️ Check if $rechargePlan exists to avoid "Property on null" error
-        if (!$rechargePlan) {
+        } catch (\Exception $e) {
             return ApiResponse::error(
-                StatusCode::NOT_FOUND,
-                'Operator plan not found'
+                StatusCode::INTERNAL_SERVER_ERROR,
+                'An unexpected error occurred.',
+                $e->getMessage()
             );
         }
-
-        // 3️⃣ Get offers if offer is active
-        $offers = [];
-        if ($rechargePlan->is_offer_active) {
-            $offers = SimOffer::where('operator', $operator)
-                ->where('status', 'active')
-                ->where('item_type', 'regular')
-                ->get();
-        }
-
-        // 4️⃣ User Balance (Optional chaining or auth safety check)
-        $availableBalance = $request->user()?->available_balance ?? $request->user->available_balance;
-
-        // 5️⃣ Fetch unique operators directly from DB (Optimized query)
-        $operators = MobileRecharge::query()
-            ->select('operator', 'logo_url')
-            ->orderBy('operator', 'asc')
-            ->get()
-            ->unique('operator')
-            ->values();
-
-
-
-        // 6️⃣ Return success response
-        return ApiResponse::success(
-            StatusCode::OK,
-            'Recharge information retrieved successfully.',
-            [
-                'available_balance' => $availableBalance,
-                'recharge_plan' => $rechargePlan,
-                'offers' => $offers,
-                'operators' => $operators,
-            ]
-        );
     }
 
     public function getRechargeOperators()
