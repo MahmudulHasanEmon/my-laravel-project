@@ -60,24 +60,32 @@ class PaymentController extends Controller
         try {
             $accessToken = $bkash->getAccessToken();
             $payment = $bkash->createPayment($amount, $userId, $accessToken);
-            
+
             $url = $payment['bkashURL'] ?? null;
 
             if (!$url) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Failed to create bKash payment. No URL returned.'
-                ], 500);
+                return ApiResponse::error(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    'Failed to create bKash payment.',
+                    ['message' => 'bKash URL not found in response.']
+                );
             }
 
             // Redirect user to the bKash payment page
-            return redirect()->away($url);
+            //return redirect()->away($url);
+
+            return ApiResponse::success(
+                StatusCode::OK,
+                'bKash payment created successfully.',
+                ['redirect_url' => $url]
+            );
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return ApiResponse::error(
+                StatusCode::INTERNAL_SERVER_ERROR,
+                'Failed to create bKash payment.',
+                ['message' => $e->getMessage()]
+            );
         }
     }
 

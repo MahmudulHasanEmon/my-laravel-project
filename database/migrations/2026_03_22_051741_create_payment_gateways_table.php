@@ -8,10 +8,10 @@ return new class extends Migration {
     
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('payment_gateways', function (Blueprint $table) {
 
             $table->id();
-
+            
             // Payment request information
             $table->string('request');
             $table->string('method');
@@ -22,7 +22,7 @@ return new class extends Migration {
                 'qrcode',
                 'other'
             ])->default('other');
-            
+
             $table->string('item_type');
 
             // Account information

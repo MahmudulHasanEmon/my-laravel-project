@@ -39,7 +39,7 @@ class UserMiddleware
                     'Invalid or expired token'
                 );
             }
-
+            
             $jti = $decoded->jti ?? null;
             if (!$jti) {
                 return ApiResponse::error(

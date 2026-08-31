@@ -16,7 +16,7 @@ class JwtHelper
     self::$key = env('USER_JWT_SECRET', config('app.key'));
   }
 
-  
+
   public static function create(array $payload, int $expMinutes = 15, ?string $deviceId = null)
   {
     self::init();
@@ -26,7 +26,7 @@ class JwtHelper
       'jti' => $jti,
       'device_id' => $deviceId,
       'iat' => $now,
-      'exp' => $now + ($expMinutes * 60)
+      'exp' => $now + ($expMinutes * 60),
     ]);
     $token = JWT::encode($payload, self::$key, self::$alg);
     return ['token' => $token, 'jti' => $jti, 'exp' => $payload['exp']];

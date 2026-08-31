@@ -27,10 +27,10 @@ class bKashService
   public function __construct()
   {
     // Use Laravel config
-    $this->appKey = 'E612It2he1RylUlVMKynUy1Atc';
-    $this->appSecret = 'TVWAgKFyzzbHTeZYigi1IuuOj8tTsgyiPq2WPFctUAkPoBkRsIQm';
-    $this->username = '01775185654';
-    $this->password = 'X3b>W!(Od+i';
+    $this->appKey = 'CtgisoKvStDgKqWEKLUkX4x0tc';
+    $this->appSecret = '4KY2pNHPEMceemlA4d29MQzGDzMzO67qwGlDxH6EWB94cYHKWReO';
+    $this->username = '01884782323';
+    $this->password = '5,R{nAO}p:]';
   }
 
   public function getAccessToken(): string

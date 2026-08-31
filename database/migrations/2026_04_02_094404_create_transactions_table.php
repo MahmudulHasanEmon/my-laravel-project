@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->id();
 
             $table->bigInteger('user_id');
-
+            
             // 🔹 User সম্পর্ক (best practice)
             $table->foreign('user_id')
                 ->references('user_id')
