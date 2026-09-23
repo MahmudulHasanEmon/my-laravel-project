@@ -4,16 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ApiResponse;
 use App\Helpers\StatusCode;
+use App\Helpers\User\OperatorHelper;
+use App\Helpers\User\TransactionCalculator;
 use App\Models\MobileRecharge;
 use App\Models\SimOffer;
 use App\Models\User\Transaction;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
-use App\Helpers\User\TransactionCalculator;
+use Illuminate\Validation\ValidationException;
 
 class MobileRechargeController extends Controller
 {
+
 
     public function recharge(Request $request)
     {
@@ -30,7 +32,6 @@ class MobileRechargeController extends Controller
         ]);
 
         if ($validator->fails()) {
-
             return ApiResponse::error(
                 StatusCode::UNPROCESSABLE_ENTITY,
                 'Validation failed',
@@ -76,7 +77,6 @@ class MobileRechargeController extends Controller
         // =========================================
 
         if ($user->available_balance < $calculation['total_deduct']) {
-
             return ApiResponse::error(
                 StatusCode::BAD_REQUEST,
                 'Insufficient balance',
@@ -97,50 +97,70 @@ class MobileRechargeController extends Controller
         // Deduct Balance
         // =========================================
 
-        $user->available_balance =
-            $user->available_balance - $calculation['total_deduct'];
-
+        $user->available_balance = $user->available_balance - $calculation['total_deduct'];
         $user->save();
+
+        $helper = new \App\Helpers\User\OperatorByRechargeHelper();
+        $response = [];
+
+        // অপারেটর নাম ফ্লেক্সিবল করার জন্য ucfirst ব্যবহার করা হয়েছে
+        $operator = ucfirst(strtolower($request->operator));
+
+        if ($operator == 'Robi') {
+            // রবি রিচার্জ কল করা
+            $response = $helper->robiRecharge($request->receiver, $request->amount, $request->amount);
+
+        } elseif ($operator == 'Banglalink' || $operator == 'Bl') {
+            // বাংল্যাশিলিংক রিচার্জ কল করা
+            $response = $helper->blRecharge($request->receiver, $request->amount);
+        } else {
+            // ভুল অপারেটর হলে ব্যালেন্স ফেরত দিয়ে এরর রিটার্ন করা
+            $user->available_balance = $user->available_balance + $calculation['total_deduct'];
+            $user->save();
+
+            return ApiResponse::error(
+                StatusCode::BAD_REQUEST,
+                'Invalid operator selected',
+                []
+            );
+        }
+
+        // রিচার্জ ফেইল হলে ব্যালেন্স রিস্টোর করা 
+        if (!isset($response['success']) || $response['success'] !== true) {
+            $user->available_balance = $user->available_balance + $calculation['total_deduct'];
+            $user->save();
+
+            return ApiResponse::error(
+                StatusCode::BAD_REQUEST,
+                'Recharge failed: ' . ($response['message'] ?? 'Unknown error'),
+                $response
+            );
+        }
 
         // =========================================
         // Create Transaction
         // =========================================
 
         $transaction = Transaction::create([
-
             'user_id' => $user->user_id,
-
             'type' => 'debit',
-
             'trx_type' => 'mobile_recharge',
-
             'trx_id' => uniqid('trx_'),
-
             'fee' => $calculation['trx_fee'],
-
             'charge' => $calculation['charge'],
-
             'discount' => $calculation['commission'],
-
             'amount' => $amount,
-
             'total_amount' => $calculation['total_deduct'],
-
             'balance_before' => $balanceBefore,
-
             'balance_after' => $user->available_balance,
-
             'receiver' => $request->receiver,
-
             'receiver_meta' => [
                 'operator' => $request->operator,
                 'type' => $request->type,
                 'offer_id' => $request->offer_id,
             ],
-
             'is_refundable' => true,
-
-            'status' => 'pending',
+            'status' => 'successful', // Data Truncated এরর সমাধানের জন্য এটি যুক্ত করা হয়েছে
         ]);
 
         // =========================================
@@ -154,7 +174,6 @@ class MobileRechargeController extends Controller
                 'transaction' => $transaction,
             ]
         );
-
     }
 
 
@@ -178,6 +197,7 @@ class MobileRechargeController extends Controller
                 );
             }
 
+
             // 3️⃣ Fetch active offers if enabled
             $offers = [];
             if ($rechargePlan->is_offer_active) {
@@ -186,6 +206,10 @@ class MobileRechargeController extends Controller
                     ->where('item_type', 'regular')
                     ->get();
             }
+
+            // $helper = new OperatorHelper();
+            // $offers = $helper->getSegregatedOffers('01884782323');
+
 
             // 4️⃣ Safely extract user balance
             $availableBalance = $request->user()?->available_balance ?? 0.00;

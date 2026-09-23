@@ -60,22 +60,32 @@ Route::prefix('user')->middleware(['auth.user'])->group(function () {
   Route::get('/recharge-info', [MobileRechargeController::class, 'getRechargeInfo']);
   Route::get('/recharge-operators', [MobileRechargeController::class, 'getRechargeOperators']);
 
-
-
   // get and post
   Route::match(['get', 'post'], '/sim-offers', [SimOfferController::class, 'allOffers'])
     ->middleware('user.permission:sim_offer');
 
   // Transaction routes
-  Route::get('/transactions', [TransactionController::class, 'index']);
+  Route::match(['get', 'post'], '/transactions', [TransactionController::class, 'transactions']);
   Route::get('/transactions/last-five', [TransactionController::class, 'lastFive']);
 
   Route::post('/recharge', [MobileRechargeController::class, 'recharge'])
     ->middleware('user.trx.limit:mobile_recharge');
 
+
+
+
 });
 
 
+
+Route::post('/recharge-test', function () {
+  $helper = new OperatorByRechargeHelper();
+
+  // সম্পূর্ণ ১১ ডিজিটের নাম্বার পাস করা হলো (সামনে ০ সহ)
+  $response = $helper->blRecharge("01928297478", "20");
+
+  return response()->json($response);
+});
 
 
 // sim offer routes

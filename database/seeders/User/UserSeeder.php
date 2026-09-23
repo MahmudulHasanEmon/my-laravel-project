@@ -118,7 +118,7 @@ class UserSeeder extends Seeder
                 'os_version' => '14',
             ]);
 
-            Transaction::factory()->count(5)->create(
+            Transaction::factory()->count(200)->create(
                 [
                     'user_id' => $user->user_id,
                 ]
@@ -144,7 +144,7 @@ class UserSeeder extends Seeder
                 'os' => 'Android',
                 'os_version' => '14',
             ]);
-            Transaction::factory()->count(5)->create(
+            Transaction::factory()->count(1000)->create(
                 [
                     'user_id' => $user->user_id,
                 ]

@@ -9,7 +9,7 @@ class TransactionCalculator
   // - Logging transaction details for auditing
   // - Triggering any post-transaction processes (e.g., updating related records, clearing caches, etc.)
 
-
+  
   public static function calculate(array $limit, float $amount): array
   {
     // =========================================

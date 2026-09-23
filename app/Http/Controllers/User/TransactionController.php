@@ -13,10 +13,6 @@ class TransactionController extends Controller
     public function create(Request $request)
     {
 
-
-
-    
-
         return ApiResponse::success(
             StatusCode::OK,
             'Transaction created successfully',
@@ -25,17 +21,33 @@ class TransactionController extends Controller
 
 
 
-
-
     }
 
-    // get all transactions
-    public function index(Request $request)
+
+    // get all transactions with pagination
+    public function transactions(Request $request)
     {
+        // প্রতি পেজে কতটি ডেটা দেখাবেন (ডিফল্ট ১০ বা আপনার প্রয়োজন অনুযায়ী)
+        $perPage = $request->get('per_page', 25);
+
+        // পেজিনেশন কুয়েরি (নতুন ট্রানজেকশন আগে দেখানোর জন্য latest() যুক্ত করতে পারেন)
+        $paginator = $request->user()->transactions()
+            ->latest()
+            ->paginate(250);
+
+        // নিজের পছন্দমতো কাস্টম স্ট্রাকচার তৈরি করা
+        $customResponse = [
+            'current_page' => $paginator->currentPage(),
+            'last_page' => $paginator->lastPage(),
+            'per_page' => $paginator->perPage(),
+            'total' => $paginator->total(),
+            'data' => $paginator->items(), // মূল ট্রানজেকশন লিস্ট
+        ];
+
         return ApiResponse::success(
             StatusCode::OK,
-            'Last 5 transactions retrieved successfully',
-            $request->user->transactions,
+            'Transactions retrieved successfully',
+            $customResponse
         );
     }
 

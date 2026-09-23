@@ -59,7 +59,16 @@ return new class extends Migration {
                 'completed',
                 'failed',
                 'reversed',
-                'cancelled'
+                'cancelled',
+                'successful',
+                'unsuccessful',
+                'refunded',
+                'chargeback',
+                'disputed',
+                'expired',
+                'on_hold',
+                'under_review',
+                'awaiting_payment',
             ])->default('pending')->index();
 
             // Created by and updated by (for audit)
