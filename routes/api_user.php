@@ -72,8 +72,6 @@ Route::prefix('user')->middleware(['auth.user'])->group(function () {
     ->middleware('user.trx.limit:mobile_recharge');
 
 
-
-
 });
 
 

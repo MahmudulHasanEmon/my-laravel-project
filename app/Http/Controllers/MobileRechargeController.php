@@ -100,42 +100,42 @@ class MobileRechargeController extends Controller
         $user->available_balance = $user->available_balance - $calculation['total_deduct'];
         $user->save();
 
-        $helper = new \App\Helpers\User\OperatorByRechargeHelper();
-        $response = [];
+        // $helper = new \App\Helpers\User\OperatorByRechargeHelper();
+        // $response = [];
 
-        // অপারেটর নাম ফ্লেক্সিবল করার জন্য ucfirst ব্যবহার করা হয়েছে
-        $operator = ucfirst(strtolower($request->operator));
+        // // অপারেটর নাম ফ্লেক্সিবল করার জন্য ucfirst ব্যবহার করা হয়েছে
+        // $operator = ucfirst(strtolower($request->operator));
 
-        if ($operator == 'Robi') {
-            // রবি রিচার্জ কল করা
-            $response = $helper->robiRecharge($request->receiver, $request->amount, $request->amount);
+        // if ($operator == 'Robi') {
+        //     // রবি রিচার্জ কল করা
+        //     $response = $helper->robiRecharge($request->receiver, $request->amount, $request->amount);
 
-        } elseif ($operator == 'Banglalink' || $operator == 'Bl') {
-            // বাংল্যাশিলিংক রিচার্জ কল করা
-            $response = $helper->blRecharge($request->receiver, $request->amount);
-        } else {
-            // ভুল অপারেটর হলে ব্যালেন্স ফেরত দিয়ে এরর রিটার্ন করা
-            $user->available_balance = $user->available_balance + $calculation['total_deduct'];
-            $user->save();
+        // } elseif ($operator == 'Banglalink' || $operator == 'Bl') {
+        //     // বাংল্যাশিলিংক রিচার্জ কল করা
+        //     $response = $helper->blRecharge($request->receiver, $request->amount);
+        // } else {
+        //     // ভুল অপারেটর হলে ব্যালেন্স ফেরত দিয়ে এরর রিটার্ন করা
+        //     $user->available_balance = $user->available_balance + $calculation['total_deduct'];
+        //     $user->save();
 
-            return ApiResponse::error(
-                StatusCode::BAD_REQUEST,
-                'Invalid operator selected',
-                []
-            );
-        }
+        //     return ApiResponse::error(
+        //         StatusCode::BAD_REQUEST,
+        //         'Invalid operator selected',
+        //         []
+        //     );
+        // }
 
-        // রিচার্জ ফেইল হলে ব্যালেন্স রিস্টোর করা 
-        if (!isset($response['success']) || $response['success'] !== true) {
-            $user->available_balance = $user->available_balance + $calculation['total_deduct'];
-            $user->save();
+        // // রিচার্জ ফেইল হলে ব্যালেন্স রিস্টোর করা 
+        // if (!isset($response['success']) || $response['success'] !== true) {
+        //     $user->available_balance = $user->available_balance + $calculation['total_deduct'];
+        //     $user->save();
 
-            return ApiResponse::error(
-                StatusCode::BAD_REQUEST,
-                'Recharge failed: ' . ($response['message'] ?? 'Unknown error'),
-                $response
-            );
-        }
+        //     return ApiResponse::error(
+        //         StatusCode::BAD_REQUEST,
+        //         'Recharge failed: ' . ($response['message'] ?? 'Unknown error'),
+        //         $response
+        //     );
+        // }
 
         // =========================================
         // Create Transaction
@@ -174,6 +174,8 @@ class MobileRechargeController extends Controller
                 'transaction' => $transaction,
             ]
         );
+
+
     }
 
 

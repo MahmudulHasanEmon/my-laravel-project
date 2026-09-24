@@ -19,8 +19,6 @@ class TransactionController extends Controller
             $request->all()
         );
 
-
-
     }
 
 
