@@ -153,12 +153,23 @@ class UserSeeder extends Seeder
         });
 
 
-        $trxTypes = ['send_money', 'mobile_recharge', 'pay_bill'];
+        $trxTypes = ['send_money', 'mobile_recharge', 'pay_bill', 'bank_transfer', 'add_money', 'offer_purchase'];
 
         foreach ($trxTypes as $type) {
-            TransactionLimit::factory()->create([
-                'trx_type' => $type,
-            ]);
+
+            if ($type === 'offer_purchase') {
+                TransactionLimit::factory()->create([
+                    'trx_type' => $type,
+                    'charge_type' => 'fixed', // Set a specific charge type for offer_purchase
+                    'charge_value' => 0, // Set a specific charge value for offer_purchase
+                    'commission_type' => 'fixed', // Set a specific commission type for offer_purchase
+                    'commission_value' => 0, // Set a specific commission value for offer_purchase
+                ]);
+            } else {
+                TransactionLimit::factory()->create([
+                    'trx_type' => $type,
+                ]);
+            }
         }
 
 

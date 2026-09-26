@@ -71,20 +71,11 @@ Route::prefix('user')->middleware(['auth.user'])->group(function () {
   Route::post('/recharge', [MobileRechargeController::class, 'recharge'])
     ->middleware('user.trx.limit:mobile_recharge');
 
+  Route::post('/offer-purchase', [SimOfferController::class, 'offerPurchase'])
+    ->middleware('user.trx.limit:offer_purchase');
+
 
 });
-
-
-
-Route::post('/recharge-test', function () {
-  $helper = new OperatorByRechargeHelper();
-
-  // সম্পূর্ণ ১১ ডিজিটের নাম্বার পাস করা হলো (সামনে ০ সহ)
-  $response = $helper->blRecharge("01928297478", "20");
-
-  return response()->json($response);
-});
-
 
 // sim offer routes
 Route::prefix('user')->middleware(['auth.user'])->group(function () {

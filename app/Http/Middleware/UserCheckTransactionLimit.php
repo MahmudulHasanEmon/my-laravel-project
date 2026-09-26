@@ -9,6 +9,7 @@ use App\Models\User\TransactionLimit;
 use Carbon\Carbon;
 use Closure;
 use Illuminate\Http\Request;
+use Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class UserCheckTransactionLimit
@@ -30,6 +31,8 @@ class UserCheckTransactionLimit
                 'Unauthorized'
             );
         }
+
+        Log::info('User ID: ' . $user->id . ' is attempting a transaction of type: ' . $trxType);
 
         // =====================================
         // Validate Amount

@@ -27,7 +27,7 @@ class TransactionCalculator
     // =========================================
     // Charge Calculation
     // =========================================
-
+    
     $charge = 0;
 
     if ($chargeType === 'fixed') {
@@ -44,7 +44,7 @@ class TransactionCalculator
     // =========================================
 
     $commission = 0;
-
+    
     if ($commissionType === 'fixed') {
 
       $commission = $commissionValue;
@@ -60,7 +60,6 @@ class TransactionCalculator
 
     // Total Deduct From Sender
     $totalDeduct = $amount + $trxFee + $charge - $commission;
-
     
     // =========================================
     // Return Data
