@@ -3,10 +3,11 @@
 namespace App\Models\User;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Notification;
 use App\Models\Token;
-use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
@@ -214,6 +215,25 @@ class User extends Authenticatable
     public function lastFiveTransactions()
     {
         return $this->transactions()->latest()->take(5);
+    }
+
+
+    /**
+     * Notification রিলেশনশিপ (সব নোটিফিকেশন পাওয়ার জন্য)
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * নির্দিষ্ট ইউজারের জন্য SLIDER নোটিফিকেশন পাওয়ার মেথড
+     */
+
+    public function sliderNotifications()
+    {
+        return Notification::where('channel', 'SLIDER')
+            ->whereIn('recipient_type', ['user', 'all']);
     }
 
 }

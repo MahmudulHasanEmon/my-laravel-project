@@ -332,7 +332,13 @@ class UserController extends Controller
 
             // 🔹 8. Consume OTP session
             $session->delete();
-            $user->load('role.permissions');
+
+            $user->load([
+                'role.permissions',
+                'lastFiveTransactions',
+                'transactionLimits',
+                'notifications',
+            ]);
 
             // 🔹 9. Success response
             return ApiResponse::success(
@@ -343,9 +349,7 @@ class UserController extends Controller
                     'expires_at' => Carbon::createFromTimestamp($jwt['exp'])->toDateTimeString(),
                     'user_data' => [
                         'user' => $user,
-                        'role' => $user->role,
-                        'lastFiveTransactions' => $user->lastFiveTransactions,
-                        'transactionLimits' => $user->transactionLimits,
+                        'error' => null,
                     ],
                 ]
             );
@@ -471,7 +475,12 @@ class UserController extends Controller
                 ]
             );
 
-            $user->load('role.permissions');
+            $user->load([
+                'role.permissions',
+                'lastFiveTransactions',
+                'transactionLimits',
+                'notifications',
+            ]);
 
             return ApiResponse::success(
                 StatusCode::OK,
@@ -481,9 +490,7 @@ class UserController extends Controller
                     'expires_at' => Carbon::createFromTimestamp($jwt['exp'])->toDateTimeString(),
                     'user_data' => [
                         'user' => $user,
-                        'role' => $user->role,
-                        'lastFiveTransactions' => $user->lastFiveTransactions,
-                        'transactionLimits' => $user->transactionLimits,
+                        'error' => null,
                     ],
                 ]
             );

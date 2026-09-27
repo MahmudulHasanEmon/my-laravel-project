@@ -19,6 +19,9 @@ class UserSeeder extends Seeder
     public function run(): void
     {
 
+
+
+
         $personal = UserRole::create([
             'name' => 'personal',
             'display_name' => 'Personal',
@@ -173,5 +176,7 @@ class UserSeeder extends Seeder
         }
 
 
+        \App\Models\Notification::factory()->count(100)->create();
+        
     }
 }

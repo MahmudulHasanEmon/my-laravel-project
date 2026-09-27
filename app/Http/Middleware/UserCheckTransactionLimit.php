@@ -31,9 +31,7 @@ class UserCheckTransactionLimit
                 'Unauthorized'
             );
         }
-
-        Log::info('User ID: ' . $user->id . ' is attempting a transaction of type: ' . $trxType);
-
+        
         // =====================================
         // Validate Amount
         // =====================================
@@ -178,7 +176,7 @@ class UserCheckTransactionLimit
                 ]
             );
         }
-
+        
         // user balance check
         if ($user->available_balance < $amount) {
             return ApiResponse::error(
